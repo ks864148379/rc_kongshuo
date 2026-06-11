@@ -1,0 +1,28 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
+model NotificationTask {
+  id             Int      @id @default(autoincrement())
+  idempotencyKey String   @unique @map("idempotency_key")
+  targetUrl      String   @map("target_url")
+  headers        String   @default("{}")
+  body           String?
+  status         String   @default("PENDING")
+  attemptCount   Int      @default(0) @map("attempt_count")
+  maxAttempts    Int      @default(5) @map("max_attempts")
+  nextAttemptAt  DateTime @default(now()) @map("next_attempt_at")
+  lastStatusCode Int?     @map("last_status_code")
+  lastError      String?  @map("last_error")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([status, nextAttemptAt], name: "idx_recovery")
+  @@map("notification_task")
+}
